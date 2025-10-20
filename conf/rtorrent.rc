@@ -2,6 +2,7 @@
 # This file is installed to ~/.rtorrent.rc
 # Enable/modify the options as needed, uncomment the options you wish to enable.
 # This configuration will work with most systems, but optimal settings are dependant on specific server setup
+# Compatible with rtorrent 0.16.1 and Ubuntu 24.04
 
 ### Set Directories
 method.insert = cfg.basedir,     private|const|string, (cat,"<user home>/rtorrent/")
@@ -41,6 +42,7 @@ dht.mode.set = disable
 protocol.pex.set = no
 trackers.use_udp.set = yes
 
+# SCGI Port for ruTorrent communication
 # network.scgi.open_port = localhost:5000
 network.scgi.open_port = 127.0.0.1:5000
 network.http.ssl_verify_peer.set = 0
@@ -53,9 +55,9 @@ network.send_buffer.size.set = 4M
 network.receive_buffer.size.set = 4M
 
 ### Memory Settings
-pieces.hash.on_completion.set = no
+pieces.hash.on_completion.set = yes
 pieces.preload.type.set = 1
-pieces.memory.max.set = 3500M
+pieces.memory.max.set = 512M
 
 ### Logging:
 #   Levels = critical error warn notice info debug
@@ -69,4 +71,23 @@ pieces.memory.max.set = 3500M
 ### The following line initialises rutorrent plugins without needing to open the web interface
 execute = {sh,-c,/usr/bin/php /var/www/rutorrent/php/initplugins.php <user name> &}
 
+### Anti-Corruption Settings
+# Save session every 20 minutes to prevent session corruption
+schedule2 = session_save, 1200, 1200, ((session.save))
+# Preallocate files to reduce fragmentation
+system.file.allocate.set = yes
+# Disable file splitting (simpler, more reliable)
+system.file.split_size.set = -1
+
 #EOF
+
+
+# === Logging Configuration ===
+method.insert = cfg.logfile, private|const|string, (cat,"/var/log/rtorrent/execute.log")
+log.execute = (cat,(cfg.logfile))
+log.xmlrpc = /var/log/rtorrent/xmlrpc.log
+
+# Enhanced event logging
+method.set_key = event.download.finished, log_finished, "print=\"FINISHED: \", (d.name), \" Size: \", (d.size_bytes)"
+method.set_key = event.download.erased, log_erased, "print=\"ERASED: \", (d.name)"
+method.set_key = event.download.hash_failed, log_hash_failed, "print=\"HASH_FAILED: \", (d.name)"
