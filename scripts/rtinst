@@ -595,7 +595,7 @@ fi
 
 test -z "$install_list" || aptitude -q=5 -y install $install_list >> $logfile 2>&1
 if ! [ $? = 0 ]; then
-  echo "Problem installing packages. Check log and rerun once it is resolved" && exit
+  echo "Problem installing packages. Check log and rerun once it is resolved" && # exit
 fi
 
 if [[ $phpver =~ php7.[0-9] ]]; then
